@@ -1,0 +1,66 @@
+select *
+from following_activity
+order by follower_user_id asc
+
+select *
+from user_detail
+
+-- jawaban no 1 
+
+--CTE 1
+with fg as (
+select followed_user_id, count(followed_user_id) as total_following
+from following_activity
+group by followed_user_id
+order by followed_user_id asc),
+--CTE 2
+fr as(
+select follower_user_id, count(follower_user_id) as total_follower
+from following_activity
+group by follower_user_id
+order by follower_user_id asc),
+--CTE 3
+ud as (
+	select id, name, type
+	from user_detail
+),
+--CTE 4
+total as(
+select  COALESCE(fg.followed_user_id, fr.follower_user_id) AS user_id, COALESCE(fg.total_following, 0) AS total_following, COALESCE(fr.total_follower, 0) AS total_follower
+from fg full join fr on fg.followed_user_id = fr.follower_user_id)
+
+select ud.id, ud.name, ud.type, total.total_following, total.total_follower
+from ud full join total on ud.id = total.user_id
+
+---Jawaban no 2
+--CTE 1
+with fg as (
+select followed_user_id, count(followed_user_id) as total_following
+from following_activity
+group by followed_user_id
+order by followed_user_id asc),
+--CTE 2
+fr as(
+select follower_user_id, count(follower_user_id) as total_follower
+from following_activity
+group by follower_user_id
+order by follower_user_id asc),
+--CTE 3
+ud as (
+	select id, name, type
+	from user_detail
+),
+--CTE 4
+total as(
+select  COALESCE(fg.followed_user_id, fr.follower_user_id) AS user_id, COALESCE(fg.total_following, 0) AS total_following, COALESCE(fr.total_follower, 0) AS total_follower
+from fg full join fr on fg.followed_user_id = fr.follower_user_id),
+--CTE 5
+pa as (select id, user_posting_id, count (user_posting_id) as estimated_user_view
+from post_activity
+group by id, user_posting_id
+	  order by user_posting_id asc)
+
+select pa.id, pa.user_posting_id, pa.estimated_user_view, total.total_follower, total.total_following
+from pa full join total on pa.user_posting_id = total.user_id
+
+
